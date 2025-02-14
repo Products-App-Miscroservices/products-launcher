@@ -18,6 +18,20 @@ https://www.udemy.com/course/nestjs-microservicios/learn/lecture/42560210#questi
   - En este caso los archivos son los docker y .env.
 4. Hacer `git init`.
 5. Realizar primer commit para poder subir el repositorio.
+6. Subir repositorio.
+7. Ejecutar siguiente comando para empezar a añadir referencias de otros repositorios.
+  - El repository_url se puede obtener del boton de __Code__, en la sección __HTTPS__.
+  - Este comando crea el archivo __.gitmodules__, el cual contiene las referencias al módulo y en general. Se le tiene que hacer commit también.
+```bash
+git submodule add <repository_url> <directory_name>
+
+git submodule add https://github.com/Products-App-Miscroservices/gateway.git gateway
+git submodule add https://github.com/Products-App-Miscroservices/products-microservice.git products-microservice
+```
+
+8. Al cargar todos los submodulos se hace commit y push al repositorio.
+
+
 
 # Creación de proyecto (para gateway los recursos son REST API)
 1. Crear carpeta en donde se colocaran todos los repositorios.
