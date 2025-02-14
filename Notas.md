@@ -30,8 +30,20 @@ git submodule add https://github.com/Products-App-Miscroservices/products-micros
 ```
 
 8. Al cargar todos los submodulos se hace commit y push al repositorio.
+9. En caso de clonar el repositorio del launcher las carpetas van a venir vacías, por lo que se debe correr el siguiente comando:
 
+```bash
+git submodule update --init --recursive
+```
 
+## Trabajar con Launcher
+- Al hacer cambios en los repositorios a los que se tienen referencias se debe hacer lo siguiente:
+  1. Hacer commit push de los cambios en cada repositorio.
+  2. Hacer commit push en el launcher.
+- Si se hace primero lo anterior en el launcher entonces va a generar errores.
+  - En VS Code se recomienda gestionar el versionamiento. Si en el versionamiento al hacer click en uno de los archivos modificados y en el hash del commit aparece __dirty__, significa que no se han hecho los push en el repositorio del submodulo al que se hace referencia.
+    - Asegurarse de no estar en la rama del hash cuando se trabaje con VS Code.
+  - Cuando se hace al revés el paso, entonces se pierden referencias de los sub-módulos en el repositorio del launcher, lo cual provacará tener que resolver conflictos.
 
 # Creación de proyecto (para gateway los recursos son REST API)
 1. Crear carpeta en donde se colocaran todos los repositorios.
