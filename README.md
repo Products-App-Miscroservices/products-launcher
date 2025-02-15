@@ -46,3 +46,14 @@ Si se hace al revés, se perderán las referencias de los sub-módulos en el rep
 ```
 docker compose -f docker-compose.prod.yml build
 ```
+
+# Versión actualizada de docker desktop, DEV
+1. Ejecutar el comando para generar imagen
+```
+docker compose -f docker-compose.V4.yml build
+```
+
+2. Si se corriera el siguiente comando solo lo levantaría, pero ahí sí pediría las variables de entorno.
+```bash
+docker compose -f docker-compose.prod.yml up --watch
+```

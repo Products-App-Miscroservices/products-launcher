@@ -1,0 +1,46 @@
+services:
+  nats-server:
+    image: nats:latest # Ocupar versiones específicas cuando se trabaje en proyecto real
+    ports:
+      - 8222:8222
+
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: dockerfile
+      args:
+        - PORT=${GATEWAY_PORT}
+    ports:
+      - ${GATEWAY_PORT}:${GATEWAY_PORT}
+    develop:
+      watch:
+        - action: sync
+          path: ./gateway/src
+          target: /usr/src/app/src
+          ignore:
+            - node_modules
+    command: npm run start:dev
+    environment:
+      - PORT=${GATEWAY_PORT}
+      - NATS_SERVERS=${NATS_SERVERS}
+
+  products-ms:
+    build:
+      context: ./products-microservice
+      dockerfile: dockerfile
+      args:
+        - PORT=${PRODUCTS_MICROSERVICE_PORT}
+    ports:
+      - ${PRODUCTS_MICROSERVICE_PORT}:${PRODUCTS_MICROSERVICE_PORT}
+    develop:
+      watch:
+        - action: sync
+          path: ./products-microservice/src
+          target: /usr/src/app/src
+          ignore:
+            - node_modules
+    command: npm run start:dev
+    environment:
+      - PORT=${PRODUCTS_MICROSERVICE_PORT}
+      - NATS_SERVERS=${NATS_SERVERS}
+      - DATABASE_URL=${PRODUCTS_DATABASE_URL}
