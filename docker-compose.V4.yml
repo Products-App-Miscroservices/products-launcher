@@ -44,7 +44,7 @@ services:
       - PORT=${PRODUCTS_MICROSERVICE_PORT}
       - NATS_SERVERS=${NATS_SERVERS}
       - DATABASE_URL=${PRODUCTS_DATABASE_URL}
-  
+
   auth-ms:
     build:
       context: ./auth-microservice
@@ -66,3 +66,34 @@ services:
       - NATS_SERVERS=${NATS_SERVERS}
       - DATABASE_URL=${AUTH_DATABASE_URL}
       - JWT_SECRET=${JWT_SECRET}
+
+  orders-microservice:
+    build:
+      context: ./orders-microservice
+      dockerfile: dockerfile
+      args:
+        - PORT=${ORDERS_MICROSERVICE_PORT}
+    develop:
+      - watch:
+          - action: sync
+            path: ./orders-microservice/src
+            target: /usr/src/app/src
+            ignore:
+              - node_modules
+    command: npm run start:dev
+    environment:
+      - PORT=${ORDERS_MICROSERVICE_PORT}
+      - NATS_SERVERS=${NATS_SERVERS}
+      - DATABASE_URL=${ORDERS_DATABASE_URL}
+
+  orders-db:
+    container_name: orders-database
+    image: postgres:16.2
+    volumes:
+      - ./orders-microservice/postgres:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=123456
+      - POSTGRES_DB=ordersdb

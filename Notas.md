@@ -191,6 +191,206 @@ export class ProductsService extends PrismaClient implements OnModuleInit {
 }
 ```
 
+### Postgres
+- Se puede tener ya una base de datos aprovisionada en ... o una imagen de docker. Por el momento, para trabajar en desarrollo se opta por docker.
+- A diferencia de mongo que es una base de datos no relacional, en este caso sí se deben hacer migraciones
+
+1. Crear __docker-compose.yaml__ en root de la aplicación.
+  - En este caso, se crea en orders-ms
+
+```yaml
+version: '3'
+
+services:
+  orders-db:
+    container_name: orders_database
+    image: postgres:16.2
+    restart: always
+    volumes:
+      - ./postgres:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=123456
+      - POSTGRES_DB=ordersdb
+```
+
+2. Crear contenedor.
+```bash
+docker compose up -d
+```
+
+3. Ignorar carpeta de volumen en __.gitignore__.
+```.gitignore
+postgres/
+```
+
+4. Anotar pasos en __README.md__.
+```md
+
+
+1. Clonar proyecto
+2. Crear un archivo .env basado en .env.template
+3. Levantar la base de datos con docker compose up -d
+4. Levantar proyecto con npm run start:dev
+```
+
+5. Conectarse por medio de __Table Plus__.
+
+![alt text](./Images/06-Docker-Postgres.png)
+
+### Prisma - Modelo - conexión
+- La documentación de prisma en este [link](https://docs.nestjs.com/recipes/prisma).
+  - Son los mismos pasos que se anotaron anteriormente, con el único cambio de la cadena de conexión.
+  - Por otro lado, en la creación del modelo se muestra la enumeración para prisma.
+
+1. Instalar prisma.
+```bash
+npm i prisma --save-dev
+```
+
+2. Crear setuo de prisma inicial.
+```bash
+npx prisma init
+```
+
+3. Ajustar cadena de conexión dada en __.env__.
+```.env
+DATABASE_URL="postgresql://postgres:123456@localhost:5432/ordersdb?schema=public"
+```
+
+4. Instalar prisma/client.
+```bash
+npm i @prisma/client
+```
+5. Definir modelos en __src/prisma/schema.prisma__.
+```prisma
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum OrderStatus {
+  PENDING
+  DELIVERED
+  CANCELLED
+}
+
+model Order {
+  id String @id @default(uuid())
+  totalAmount Float
+  totalItems Int
+
+  status OrderStatus
+  paid Boolean @default(false)
+  paidAt DateTime? // Se puede tener otra tabla con las ordenes que ya están pagadas para evitar tener que insertar null en db
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+```
+
+- Al hacer la migración, en el cliente se tiene el tipado estricto de cómo se maneja en la db. Por esta razón OrderStatus se puede tomar desde prisma client.
+```ts
+import { OrderStatus } from "@prisma/client";
+import { IsBoolean, IsEnum, IsNumber, IsOptional, IsPositive } from "class-validator";
+import { OrderStatusList } from "../enum/order.enum";
+
+export class CreateOrderDto {
+
+    @IsNumber()
+    @IsPositive()
+    totalAmount: number;
+
+    @IsNumber()
+    @IsPositive()
+    totalItems: number;
+
+    // Al hacer la migración, en el cliente se tiene el tipado estricto de cómo se maneja en la db. Por esta razón OrderStatus se puede tomar desde prisma client.
+    @IsEnum(OrderStatusList, {
+        message: `Possible status values are ${OrderStatusList}`
+    })
+    @IsOptional()
+    status: OrderStatus = OrderStatus.PENDING;
+
+    @IsBoolean()
+    @IsOptional()
+    paid: boolean = false;
+}
+
+
+```
+
+- Sin embargo, al momento de tipar en el DTO se debe crear una enumeración válida para poder usar __@IsEnum__.
+  - Se crea en orders-md __src/orders/enum/order.enum.ts__ para centralizar las posibles enumeraciones
+```ts
+import { OrderStatus } from "@prisma/client";
+
+export const OrderStatusList = [
+    OrderStatus.PENDING,
+    OrderStatus.DELIVERED,
+    OrderStatus.CANCELLED,
+];
+```
+
+- Por otro lado, al momento de pasar el DTO también al Gateway no se cuenta con prisma ahí. Entonces, también se coloca la carpeta y archivo de enum y se le modifica.
+__orders/enum/order.enum.ts__
+```ts
+export enum OrderStatus {
+    PENDING = 'PENDING',
+    DELIVERED = 'DELIVERED',
+    CANCELLED = 'CANCELLED'
+}
+
+export const OrderStatusList = [
+    OrderStatus.PENDING,
+    OrderStatus.DELIVERED,
+    OrderStatus.CANCELLED,
+];
+```
+
+6. Ejecutar migración.
+```bash
+npx prisma migrate dev --name init
+```
+
+7. Extender PrismaClient en servicio deseado.
+```ts
+@Injectable()
+export class OrdersService extends PrismaClient implements OnModuleInit {
+
+  private readonly logger = new Logger('OrdersService')
+
+  async onModuleInit() {
+    await this.$connect();
+    this.logger.log('Database connected');
+  }
+  ...
+}
+```
+
+### Dockerización
+1. En el microservicio se crea un script en package.json
+```json
+
+    "start:dev": "npm run docker:start && nest start --watch",
+    "start:debug": "nest start --debug --watch",
+    "start:prod": "node dist/main",
+    "docker:start": "prisma migrate dev && prisma generate",
+```
+
 ## Paquetes para validaciones
 1. Instalar paquetes.
 ```bash

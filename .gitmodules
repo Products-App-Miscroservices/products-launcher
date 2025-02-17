@@ -7,3 +7,6 @@
 [submodule "auth-microservice"]
 	path = auth-microservice
 	url = https://github.com/Products-App-Miscroservices/auth-microservice.git
+[submodule "orders-microservice"]
+	path = orders-microservice
+	url = https://github.com/Products-App-Miscroservices/orders-microservice.git
