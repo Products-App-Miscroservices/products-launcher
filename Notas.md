@@ -379,3 +379,55 @@ docker run -d --name nats-main -p 4222:4222 -p 6222:6222 -p 8222:8222 nats
 ## Repoisotrio que usa MongoDB y prisma
 1. Colocar comando para generar cliente de prisma en __package.json__
 2. Usar script cuando se ejecuta script de __npm run start:dev__.
+
+
+# Auth Microservice
+## Paquetes
+```bash 
+npm i bcrypt
+npm i --save-dev @types/bcrypt
+npm i --save @nestjs/jwt
+```
+
+1. Craer interfaz para definir payload de jwt.
+__src\auth\interfaces\jwt-payload.ts__
+```ts
+export interface JwtPayload {
+    id:string;
+    email: string;
+    username: string;
+}
+```
+2. Definir variables de entorno:
+  - JWT_SECRET
+
+3. Importar módulo de jwt en auth.module.ts.
+```ts
+import { Module } from '@nestjs/common';
+import { AuthService } from './auth.service';
+import { AuthController } from './auth.controller';
+import { NatsModule } from 'src/transports/nats.module';
+import { JwtModule } from '@nestjs/jwt';
+import { envs } from 'src/config/envs';
+
+@Module({
+  controllers: [AuthController],
+  providers: [AuthService],
+  imports: [
+    NatsModule,
+    JwtModule.register({
+      global: true,
+      secret: envs.jwtSecret,
+      signOptions: {expiresIn: '2h'}
+    })
+  ]
+})
+export class AuthModule {}
+
+```
+
+- De ahí se implementan los archivos creados en el curso, tales como los decoradores y los guards en __Gateway__.
+  - Con el guard ya se verifica el token con el microservicio.
+  - Con los decoradores se obtiene el usuario y el token ya que el guard se encargó de verificar el token y poner esa info en el request.
+# Pendientes
+1. __Products Microservice__. Guardar imágenes en cloudinary al crear un producto y al hacer update. __products.service.ts__.
