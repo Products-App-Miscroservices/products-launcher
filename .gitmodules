@@ -10,3 +10,6 @@
 [submodule "orders-microservice"]
 	path = orders-microservice
 	url = https://github.com/Products-App-Miscroservices/orders-microservice.git
+[submodule "payments-microservice"]
+	path = payments-microservice
+	url = https://github.com/Products-App-Miscroservices/payments-microservice.git
