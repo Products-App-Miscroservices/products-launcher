@@ -67,19 +67,41 @@ services:
       - DATABASE_URL=${AUTH_DATABASE_URL}
       - JWT_SECRET=${JWT_SECRET}
 
-  orders-microservice:
+  payments-ms:
+    build:
+      context: ./payments_microservice
+      dockerfile: dockerfile
+      args:
+        - PORT=${PAYMENTS_MICROSERVICE_PORT}
+    develop:
+      watch:
+        - action: sync
+          path: ./payments_microservice/src
+          target: /usr/src/app/src
+          ignore:
+            - node_modules
+    command: npm run start:dev
+    environment:
+      - PORT=${PAYMENTS_MICROSERVICE_PORT}
+      - STRIPE_SECRET=${STRIPE_SECRET}
+      - STRIPE_SUCCESS_URL=${STRIPE_SUCCESS_URL}
+      - STRIPE_CANCEL_URL=${STRIPE_CANCEL_URL}
+      - STRIPE_ENDPOINT_SECRET=${STRIPE_ENDPOINT_SECRET}
+      - NATS_SERVERS=nats:${NATS_SERVERS}
+
+  orders-ms:
     build:
       context: ./orders-microservice
       dockerfile: dockerfile
       args:
         - PORT=${ORDERS_MICROSERVICE_PORT}
     develop:
-      - watch:
-          - action: sync
-            path: ./orders-microservice/src
-            target: /usr/src/app/src
-            ignore:
-              - node_modules
+      watch:
+        - action: sync
+          path: ./orders-microservice/src
+          target: /usr/src/app/src
+          ignore:
+            - node_modules
     command: npm run start:dev
     environment:
       - PORT=${ORDERS_MICROSERVICE_PORT}
