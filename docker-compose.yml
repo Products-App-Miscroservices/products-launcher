@@ -60,6 +60,8 @@ services:
       dockerfile: dockerfile
       args:
         - PORT=${PAYMENTS_MICROSERVICE_PORT}
+    ports:
+      - ${PAYMENTS_MICROSERVICE_PORT}:${PAYMENTS_MICROSERVICE_PORT}
     volumes:
       - ./payments-microservice/src:/usr/src/app/src
     command: npm run start:dev
@@ -93,7 +95,7 @@ services:
     volumes:
       - ./orders-microservice/postgres:/var/lib/postgresql/data
     ports:
-      - 5435:5432
+      - 5432:5432
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=123456
