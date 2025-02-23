@@ -69,14 +69,16 @@ services:
 
   payments-ms:
     build:
-      context: ./payments_microservice
+      context: ./payments-microservice
       dockerfile: dockerfile
       args:
         - PORT=${PAYMENTS_MICROSERVICE_PORT}
+    ports:
+      - ${PAYMENTS_MICROSERVICE_PORT}:${PAYMENTS_MICROSERVICE_PORT}
     develop:
       watch:
         - action: sync
-          path: ./payments_microservice/src
+          path: ./payments-microservice/src
           target: /usr/src/app/src
           ignore:
             - node_modules
@@ -112,7 +114,7 @@ services:
     container_name: orders-database
     image: postgres:16.2
     volumes:
-      - ./orders-microservice/postgres:/var/lib/postgresql/data
+      - ./orders-microservice/postgres-data:/var/lib/postgresql/data
     ports:
       - 5432:5432
     environment:
