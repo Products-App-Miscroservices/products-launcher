@@ -631,3 +631,19 @@ export class AuthModule {}
   - Con los decoradores se obtiene el usuario y el token ya que el guard se encargó de verificar el token y poner esa info en el request.
 # Pendientes
 1. __Products Microservice__. Guardar imágenes en cloudinary al crear un producto y al hacer update. __products.service.ts__.
+
+# Dockerización
+- Se tiene en __Notas__ del curso en el repositorio de la otra cuenta.
+- Se realiza dockerfile.prod para cada microservicio, el cual va a ser multi build para poder crear las imágenes.
+
+- Se crean las imágenes de forma independiente con el siguiente comando. Sin embargo, se crea mejor un docker-compose para productivo a modo de crear todas las imágenes a la vez.
+  - Con -t se indica la tag de la imagen
+```bash
+docker build -f dockerfile.prod -t client-gateway .
+```
+
+1. Crear __docker-compose.prod.yaml__ en launcher.
+2. Correr siguiente comando para generar imágenes.
+```bash
+docker compose -f docker-compose.prod.yml build
+```
